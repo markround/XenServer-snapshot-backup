@@ -1,0 +1,102 @@
+Xenserver snapshot and template based backup script
+https://github.com/markround/XenServer-snapshot-backup
+Mark Round, github@markround.com
+
+This README was copied from the text at http://www.markround.com/snapback
+
+Please visit this page for the full HTML version of the README, along with
+screenshots which may make this a little clearer!
+
+We have recently started using Citrix Xenserver in
+production at work (fantastic product, see my review at
+http://www.markround.com/archives/63-Citrix-XenServer-5.6-Review.html for
+more information) and needed a simple backup solution. Our VMs run from an
+iSCSI SAN and are backed up daily through various methods - e.g. Bacula for
+the Unix/Linux systems. However, we wanted the ability to quickly roll back
+to a previous VM snapshot, and get up and running quickly if our SAN failed
+for whatever reason.
+
+Our solution was to create a large shared NFS storage repository, and
+periodically snapshot VMs and copy the templates over to this SR. Doing
+this means that if the SAN fails, we can create a new VM quickly from this
+NFS store (using the Xenserver's local disks, or even the NFS SR itself as
+storage). Once up and running, we can bring VMs back up to date by restoring
+the latest backup to them.
+
+In order to automate this, I wrote a quick script which I thought may prove
+useful to someone else, so decided to post it here.
+
+It is very simple, and although it may serve well as your only backup
+solution, it's really intended as an image-level compliment to your primary
+file-system based backup system such as Bacula, Amanda, Netbackup etc. It
+also has not had much testing, and I fully appreciate the scripting is pretty
+rudimentary and could do with some optimisation - there's no error checking,
+for instance. I kept it pretty verbose on purpose though, so you can get a
+good idea of exactly what it's doing at each step; it may be better to think
+of this as a template you can base your own scripts off!
+
+Overview
+========
+
+The script creates a snapshot of a running VM on a configurable schedule,
+and then creates a template from this snapshot. It will copy all these
+backup templates over to a configurable storage repository, and then clean
+up any old backups according to a specified retention policy. These backups
+are full backups, so if you have a 10GB VM and keep 7 previous copies you
+will need a total of 80GB disk space on your backup VM. Non-running VMs,
+and those not configured (as detailed below) will be skipped.
+
+Important: See http://support.citrix.com/article/CTX123400. After backing
+up each VM, you will end up with a new VDI, so you may need to manually
+coalesce your VDIs again to reclaim disk space. This appears to have been
+fixed in 5.6FP1, however.
+
+Installation and usage
+=====================
+
+First, copy the script to your Xenserver pool master, and make it executable. A
+good location for this is
+
+/usr/local/bin/snapback.sh.
+
+Next, create a cron entry for the script - to make it run daily just after
+1AM, you'd create /etc/cron.d/backup with the following contents :
+
+2 1 * * * root /usr/local/bin/snapback.sh > /var/log/snapback.log 2>&1
+
+This will also record a log of it's actions to /var/log/snapback.log. You
+now need to edit the script and change the DEST_SR variable to the UUID
+of your backup storage repository. You can find this value by clicking
+on the SR in Xencenter; the UUID will be displayed as a value like
+"2c01dc26-f525-70d6-dedf-00baaec76645".
+
+Lastly, you need to configure your backup and retention policy for your VMs. In
+Xencenter, right click your VM, and select "Properties". Click on "Custom
+Fields", and then "Edit Custom Fields". You should add two text fields :
+
+
+backup : Can be one of "daily", "weekly", or "monthly". If it is set to
+weekly, it will by default run on a Sunday, and if it set to monthly, it
+will run on the first Sunday of the month. This day can be changed at the
+top of the script - see the WEEKLY_ON and MONTHLY_ON variables.
+
+retain : How many previous backups (in addition to the currently running
+backup) to keep. So, setting this to a value of "2" would mean that after
+a backup has run, you would end up with 3 backups in total.
+
+
+The script will look for these fields when it is run, and will skip any VM
+that doesn't have them set. You can also see them in the Xencenter summary
+and properties for the VM.
+
+You can now either run the script manually, or wait until the cron job
+kicks off. It will produce a detailed log to the console (or log file if
+run through cron), and when it's finished, you'll see your template backup
+VMs listed in Xencenter.
+
+If you find that this clutters up the Xencenter view a little, you can always
+hide them (View->Server View->Custom Templates).
+
+To restore a VM from a backup, just right click, and choose "New template
+from backup". Anyway, I hope this helps someone else!
+
