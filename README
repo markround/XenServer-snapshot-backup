@@ -35,6 +35,12 @@ for instance. I kept it pretty verbose on purpose though, so you can get a
 good idea of exactly what it's doing at each step; it may be better to think
 of this as a template you can base your own scripts off!
 
+* Note * There is now a snapback-xva.sh script, which has modifications by 
+Luis Davim, which support the creation of additional XVA snapshots on
+an independant schedule. This is a great addition to the script, but as it
+may not be suitable for all users, it's included as a separate script.
+Thanks, Luis!
+
 Overview
 ========
 
