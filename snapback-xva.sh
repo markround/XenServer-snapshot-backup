@@ -270,7 +270,7 @@ for VM in $RUNNING_VMS; do
         # Sort -n, head -n -$RETAIN
         # Loop through and remove each one
         echo "= Removing old XVA files ="
-        ls -1 /var/run/sr-mount/$XVA_SR/*.xva | grep "$VM_NAME-$BACKUP_SUFFIX" | sort -n | head -n-$RETAIN > $TEMP
+        ls -1 /var/run/sr-mount/$XVA_SR/*.xva | grep "$VM_NAME-$BACKUP_SUFFIX" | sort -n | head -n-$XVA_RETAIN > $TEMP
         while read OLD_TEMPLATE; do
             echo "Removing : $OLD_TEMPLATE"
             rm $OLD_TEMPLATE
