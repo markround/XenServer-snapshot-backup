@@ -38,8 +38,8 @@ SKIP_TEMPLATE=1
 SKIP_XVA=1
 
 if [ -f $LOCKFILE ]; then
-        echo "Lockfile $LOCKFILE exists, exiting!"
-        exit 1
+    echo "Lockfile $LOCKFILE exists, exiting!"
+    exit 1
 fi
 
 touch $LOCKFILE
@@ -69,8 +69,8 @@ function delete_snapshot()
 {
     DELETE_SNAPSHOT_UUID=$1
     for VDI_UUID in $(xe vbd-list vm-uuid=$DELETE_SNAPSHOT_UUID empty=false | xe_param "vdi-uuid"); do
-            echo "Deleting snapshot VDI : $VDI_UUID"
-            xe vdi-destroy uuid=$VDI_UUID
+        echo "Deleting snapshot VDI : $VDI_UUID"
+        xe vdi-destroy uuid=$VDI_UUID
     done
 
     # Now we can remove the snapshot itself
@@ -83,8 +83,8 @@ function delete_template()
 {
     DELETE_TEMPLATE_UUID=$1
     for VDI_UUID in $(xe vbd-list vm-uuid=$DELETE_TEMPLATE_UUID empty=false | xe_param "vdi-uuid"); do
-            echo "Deleting template VDI : $VDI_UUID"
-            xe vdi-destroy uuid=$VDI_UUID
+        echo "Deleting template VDI : $VDI_UUID"
+        xe vdi-destroy uuid=$VDI_UUID
     done
 
     # Now we can remove the template itself
@@ -118,11 +118,11 @@ for VM in $RUNNING_VMS; do
     #XVA Backups
     XVA_SCHEDULE=$(xe vm-param-get uuid=$VM param-name=other-config param-key=XenCenter.CustomFields.xva_backup)    
     XVA_RETAIN=$(xe vm-param-get uuid=$VM param-name=other-config param-key=XenCenter.CustomFields.xva_retain)    
-    
+
     # Not using this yet, as there are some bugs to be worked out...
     # QUIESCE=$(xe vm-param-get uuid=$VM param-name=other-config param-key=XenCenter.CustomFields.quiesce)    
 
-##############################check Template schedule###########################
+    ##############################check Template schedule###########################
     if [[ "$SCHEDULE" == "" || "$RETAIN" == "" ]]; then
         echo "No schedule or retention set for template backup, skipping this VM"
         SKIP_TEMPLATE=1
@@ -156,7 +156,7 @@ for VM in $RUNNING_VMS; do
             fi
         fi
     fi
-##############################check XVA schedule################################
+    ##############################check XVA schedule################################
     if [[ "$XVA_SCHEDULE" == "" || "$XVA_RETAIN" == "" ]]; then
         echo "No schedule or retention set for XVA backup, skipping this VM"
         SKIP_XVA=1
@@ -190,13 +190,13 @@ for VM in $RUNNING_VMS; do
             fi
         fi
     fi
-################################################################################
+    ################################################################################
 
     if [[ "$SKIP_TEMPLATE" == "0" && "$SKIP_XVA" == "0" ]]; then
         echo "Nothing to do for this VM!..."
         continue
     fi
-    
+
     echo "= Checking snapshots for $VM_NAME ="
     VM_SNAPSHOT_CHECK=$(xe snapshot-list name-label="$VM_NAME-$SNAPSHOT_SUFFIX" | xe_param uuid)
     if [ "$VM_SNAPSHOT_CHECK" != "" ]; then
@@ -265,7 +265,7 @@ for VM in $RUNNING_VMS; do
         EXPORT_CMD="vm-export"
         xe $EXPORT_CMD vm=$SNAPSHOT_UUID filename="/var/run/sr-mount/$XVA_SR/$VM_NAME-$BACKUP_SUFFIX-$BACKUP_DATE.xva"
         echo "Done."
-        
+
         # List XVA files for all VMs, grep for $VM_NAME-$BACKUP_SUFFIX
         # Sort -n, head -n -$RETAIN
         # Loop through and remove each one
@@ -300,3 +300,5 @@ echo " "
 
 rm $TEMP
 rm $LOCKFILE
+
+# vim: ai ts=4 sw=4 tw=78 expandtab :
