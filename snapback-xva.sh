@@ -192,7 +192,7 @@ for VM in $RUNNING_VMS; do
     fi
 ################################################################################
 
-    if [[ "$SKIP_TEMPLATE" == "0" && "$SKIP_XVA" == "0" ]]; then
+    if [[ "$SKIP_TEMPLATE" == "1" && "$SKIP_XVA" == "1" ]]; then
         echo "Nothing to do for this VM!..."
         continue
     fi
